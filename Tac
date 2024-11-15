@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Tic Tac Toe</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            text-align: center;
+        }
+        .container, .start-screen, .end-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        .active {
+            display: flex;
+        }
+        .container {
+            grid-template-columns: repeat(3, 100px);
+            gap: 10px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            font-size: 2em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 3px solid #222;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .cell:hover {
+            background-color: #111;
+        }
+        .neon-x {
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+        }
+        .neon-o {
+            color: #f0f;
+            text-shadow: 0 0 10px #f0f, 0 0 20px #f0f;
+        }
+        .status, .start-screen h1, .end-screen h1 {
+            font-size: 1.5em;
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="start-screen active" id="startScreen">
+        <h1>Welcome to Neon Tic Tac Toe</h1>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <div class="container" id="gameContainer">
+        <div id="board" class="container">
+            <!-- Cells will be dynamically generated here -->
+        </div>
+        <div class="status" id="status">Your Turn</div>
+    </div>
+
+    <div class="end-screen" id="endScreen">
+        <h1 id="endMessage"></h1>
+        <button onclick="restartGame()">Play Again</button>
+    </div>
+
+    <script>
+        const board = Array(9).fill(null);
+        const startScreen = document.getElementById('startScreen');
+        const gameContainer = document.getElementById('gameContainer');
+        const endScreen = document.getElementById('endScreen');
+        const boardElement = document.getElementById('board');
+        const statusElement = document.getElementById('status');
+        const endMessage = document.getElementById('endMessage');
+        let isPlayerTurn = true;
+
+        function startGame() {
+            startScreen.classList.remove('active');
+            gameContainer.classList.add('active');
+            createBoard();
+        }
+
+        function createBoard() {
+            boardElement.innerHTML = '';
+            board.fill(null);
+            board.forEach((_, index) => {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', () => handlePlayerMove(index));
+                boardElement.appendChild(cell);
+            });
+            statusElement.textContent = "Your Turn";
+            isPlayerTurn = true;
+            endScreen.classList.remove('active');
+        }
+
+        function handlePlayerMove(index) {
+            if (board[index] || !isPlayerTurn) return;
+            board[index] = 'X';
+            updateBoard();
+            if (checkWinner('X')) {
+                endGame("You Win!");
+                return;
+            }
+            isPlayerTurn = false;
+            statusElement.textContent = "Computer's Turn";
+            setTimeout(handleComputerMove, 500);
+        }
+
+        function handleComputerMove() {
+            const emptyCells = board.map((val, i) => (val === null ? i : null)).filter(val => val !== null);
+            if (emptyCells.length === 0) {
+                endGame("It's a Draw!");
+                return;
+            }
+            const move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            board[move] = 'O';
+            updateBoard();
+
+            if (checkWinner('O')) {
+                endGame("Computer Wins!");
+                return;
+            }
+            isPlayerTurn = true;
+            statusElement.textContent = "Your Turn";
+        }
+
+        function updateBoard() {
+            board.forEach((mark, index) => {
+                const cell = boardElement.children[index];
+                cell.textContent = mark;
+                cell.className = 'cell';
+                if (mark === 'X') cell.classList.add('neon-x');
+                if (mark === 'O') cell.classList.add('neon-o');
+            });
+        }
+
+        function checkWinner(mark) {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8],
+                [0, 4, 8], [2, 4, 6]
+            ];
+            return winPatterns.some(pattern => 
+                pattern.every(index => board[index] === mark)
+            );
+        }
+
+        function endGame(message) {
+            statusElement.textContent = "";
+            endMessage.textContent = message;
+            gameContainer.classList.remove('active');
+            endScreen.classList.add('active');
+        }
+
+        function restartGame() {
+            endScreen.classList.remove('active');
+            startGame();
+        }
+    </script>
+</body>
+</html>
